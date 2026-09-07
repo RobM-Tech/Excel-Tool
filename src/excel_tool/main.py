@@ -1,9 +1,16 @@
-from excel_tool.functions.load import load_workbook
+from excel_tool.functions import collection
 
 def main():
-    fp1 = input("Please drop file 1 here: ")
-    fp2 = input("Please drop file 2 here: ")
-    load_workbook(fp1, fp2)
+    DOORS_req = input("Please drop DOORS file here: ")
+    # clean DOORS file path
+    collection.get_clean_path(DOORS_req)
+
+    USAF_Block_8 = input("Please drop USAF_Block_8 file here: ")
+    # clean USAF_Block_8 file path
+    collection.get_clean_path(USAF_Block_8)
+
+    print(DOORS_req)
+    
 
 
 if __name__ == "__main__":

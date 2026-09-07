@@ -1,27 +1,25 @@
 import pandas as pd
 
-import platform
-from pathlib import Path
+from excel_tool.config.data_config import File_data
+df_dict = {}
 
-def get_clean_path(file_path):
-    # Strip quotes and fix terminal-escaped spaces
-    p = file_path.strip().strip("'\"").replace("\\ ", " ")
+def load_workbook(file: File_data):
     
-    # convert "C:" to "/mnt/c" ONLY if running on Linux
-    if platform.system() == "Linux" and p[1:2] == ":":
-        p = f"/mnt/{p[0].lower()}{p[2:]}"
-
-        clean_fp = Path(p)
-    return clean_fp
 
 
 
+    DOORS_df = pd.read_excel(file.file_path)
+    df_dict["DOORS"] = DOORS_df
 
-def load_workbook(fp1, fp2):
-    clean_fp1 = get_clean_path(fp1)
-    clean_fp2 = get_clean_path(fp2)
+    USAF_Block_8_df = pd.read_excel(file.file_path)
+    df_dict["USAF_Block_8"] = USAF_Block_8_df
 
-    df1 = pd.read_excel(clean_fp1)
-    df2 = pd.read_excel(clean_fp2)
-    print(df1)
-    print(df2)
+    print(df_dict)
+
+
+
+
+
+
+
+    
