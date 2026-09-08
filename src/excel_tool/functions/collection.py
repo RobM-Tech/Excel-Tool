@@ -26,6 +26,8 @@ def get_clean_path(file_path):
     return clean_fp
 
 
+
+
 def create_file_data(clean_fp):
     if "doors" in clean_fp.name.lower():
         DOORS = File_data(file_name=clean_fp.name, file_path=clean_fp)
@@ -33,5 +35,7 @@ def create_file_data(clean_fp):
     else:
         USAF_Block_8 = File_data(file_name=clean_fp.name, file_path=clean_fp)
         return USAF_Block_8
+
+    
 
     
