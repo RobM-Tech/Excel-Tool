@@ -1,6 +1,7 @@
 import pytest
+import pandas as pd
 from pathlib import Path
-from excel_tool.functions.collection import get_clean_path, create_file_data
+from excel_tool.functions.collection import get_clean_path, create_file_data, explode_multi_ID_cells
 
 #Test get_clean_path()
 
@@ -61,4 +62,22 @@ def test_create_file_data_Block_8_Rubric():
 
     assert result.file_name == test_file
     assert result.file_path == raw
-    
+
+# Test explode_multi_ID_cells()
+
+def test_explode_multi_ID_cells():
+    df = pd.DataFrame({
+    "doc_id": [1, 2, 3, 4],
+    "raw_text": [
+        "Hello World\nBeautiful Day",       
+        "Line one\n\nLine three",           
+        "  Spaces  everywhere  \n",         
+        None                                
+        ]
+    })
+
+    col_name = "raw_text"
+    result = explode_multi_ID_cells(df, col_name)
+    expected = ['Hello', 'World', 'Beautiful', 'Day', 'Line', 'one', 'Line', 'three', 'Spaces', 'everywhere']
+
+    assert result == expected

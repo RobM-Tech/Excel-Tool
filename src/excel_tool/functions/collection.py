@@ -1,4 +1,5 @@
 import platform
+
 from pathlib import Path
 from excel_tool.config.data_config import File_data
 from excel_tool.functions.load import load_workbook
@@ -36,6 +37,7 @@ def create_file_data(clean_fp):
         Block_8_Rubric = File_data(file_name=clean_fp.name, file_path=clean_fp)
         return Block_8_Rubric
 
-    
 
-    
+def explode_multi_ID_cells(df, col_name):
+    explode_df = df[col_name].str.split("\n").explode().str.split().explode().dropna().to_list()
+    return explode_df

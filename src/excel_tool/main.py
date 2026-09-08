@@ -1,5 +1,6 @@
-from excel_tool.functions import collection
-from excel_tool.functions import load
+from excel_tool.functions import collection, load, compare
+
+
 
 def main():
     # Get DOORS file path
@@ -22,7 +23,18 @@ def main():
     DOORS_df = load.load_workbook(DOORS_data)
     Block_8_Rubric_df = load.load_workbook(Block_8_Rubric_data)
 
-    print(DOORS_data)
-    #print(Block_8_Rubric_df)
+    # Convert list 1 needed columns to lists
+    # Extract multiple-IDs in on cell preserve order
+    DOORS_Originating_IDs = collection.explode_multi_ID_cells(DOORS_df, "Originating ID")
+    Block_8_Rubric_Originating_IDs = list(Block_8_Rubric_df["Block 8.1 Full"])
+
+    # Pass to list 1 comparison function
+    list_one = list(compare.list_one_rubric_to_DOORS(Block_8_Rubric_Originating_IDs, DOORS_Originating_IDs))
+
+    #Turn list into column
+    l1_df = load.load_missing_IDs_to_column(list_one)
+
+    
+    print(DOORS_Originating_IDs)
 if __name__ == "__main__":
     main()
