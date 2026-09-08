@@ -2,6 +2,8 @@ import pytest
 from pathlib import Path
 from excel_tool.functions.collection import get_clean_path, create_file_data
 
+#Test get_clean_path()
+
 def test_get_clean_path_normal(tmp_path):
     # Create a real temporary .xlsx file for the test
     test_file = tmp_path / "USAF_Block_8_1_DOORS_Reqs.xlsx"
@@ -38,3 +40,25 @@ def test_get_clean_path_windows_style():
     assert isinstance(result, Path)
     assert result == Path("/mnt/c/Users/Rob/Desktop/excel sheets/USAF_Block_8_1_DOORS_Reqs.xlsx")
     assert result.is_file()
+
+
+# Test create_file_data()
+
+def test_create_file_data_DOORS():
+    test_file = "USAF_Block_8_1_DOORS_Reqs.xlsx"
+    
+    raw = Path(f"c:/Users/Rob/Desktop/excel sheets/{test_file}")
+    result = create_file_data(raw)
+
+    assert result.file_name == test_file
+    assert result.file_path == raw
+
+def test_create_file_data_Block_8_Rubric():
+    test_file = "USAF_Block_8_1_Rubric.xlsx"
+    
+    raw = Path(f"c:/Users/Rob/Desktop/excel sheets/{test_file}")
+    result = create_file_data(raw)
+
+    assert result.file_name == test_file
+    assert result.file_path == raw
+    

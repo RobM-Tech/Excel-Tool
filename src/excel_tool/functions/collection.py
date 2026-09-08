@@ -33,8 +33,8 @@ def create_file_data(clean_fp):
         DOORS = File_data(file_name=clean_fp.name, file_path=clean_fp)
         return DOORS
     else:
-        USAF_Block_8 = File_data(file_name=clean_fp.name, file_path=clean_fp)
-        return USAF_Block_8
+        Block_8_Rubric = File_data(file_name=clean_fp.name, file_path=clean_fp)
+        return Block_8_Rubric
 
     
 

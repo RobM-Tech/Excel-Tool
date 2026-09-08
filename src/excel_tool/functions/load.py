@@ -10,8 +10,8 @@ def load_workbook(file: File_data):
      return DOORS_df
     
     else:
-        USAF_Block_8_df = pd.read_excel(file.file_path)
-        return USAF_Block_8_df
+        Block_8_Rubric_df = pd.read_excel(file.file_path)
+        return Block_8_Rubric_df
     
 
 

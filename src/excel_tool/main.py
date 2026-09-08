@@ -9,20 +9,20 @@ def main():
     DOORS_req_clean = collection.get_clean_path(DOORS_req)
 
     # Get USAF_Block_8 file path
-    USAF_Block_8 = input("Please drop USAF_Block_8 file here: ")
+    Block_8_Rubric = input("Please drop Block_8_Rubric file here: ")
 
     # clean USAF_Block_8 file path
-    USAF_Block_8_clean = collection.get_clean_path(USAF_Block_8)
+    Block_8_Rubric_clean = collection.get_clean_path(Block_8_Rubric)
 
     # create file data
     DOORS_data = collection.create_file_data(DOORS_req_clean)
-    USAF_Block_8_data = collection.create_file_data(USAF_Block_8_clean)
+    Block_8_Rubric_data = collection.create_file_data(Block_8_Rubric_clean)
 
     #load workbooks into datafields
     DOORS_df = load.load_workbook(DOORS_data)
-    USAF_Block_8_df = load.load_workbook(USAF_Block_8_data)
+    Block_8_Rubric_df = load.load_workbook(Block_8_Rubric_data)
 
-    print(DOORS_df["ID"])
-    #print(USAF_Block_8_df)
+    print(DOORS_data)
+    #print(Block_8_Rubric_df)
 if __name__ == "__main__":
     main()
