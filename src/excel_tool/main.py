@@ -19,6 +19,9 @@ def main():
     DOORS_data = collection.create_file_data(DOORS_req_clean)
     Block_8_Rubric_data = collection.create_file_data(Block_8_Rubric_clean)
 
+    # Make a copy of DOORS to keep original safe
+    DOORS_out = collection.make_copy_of_file(DOORS_data)
+
     #load workbooks into datafields
     DOORS_df = load.load_workbook(DOORS_data)
     Block_8_Rubric_df = load.load_workbook(Block_8_Rubric_data)
@@ -35,9 +38,8 @@ def main():
     l1_df = load.load_missing_IDs_to_column(list_one)
 
     # Write list 1 to DOORS on a new sheet
-    write.write_df_to_new_sheet(DOORS_data, l1_df, "List One")
+    write.write_df_to_new_sheet(DOORS_out, l1_df, "List One")
 
     
-    print(DOORS_Originating_IDs)
 if __name__ == "__main__":
     main()

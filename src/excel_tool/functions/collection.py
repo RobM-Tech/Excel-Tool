@@ -1,4 +1,5 @@
 import platform
+import shutil
 
 from pathlib import Path
 from excel_tool.config.data_config import File_data
@@ -27,7 +28,11 @@ def get_clean_path(file_path):
     return clean_fp
 
 
-
+def make_copy_of_file(file: File_data):
+    new_file = file.file_path.stem + "_reconciled" + file.file_path.suffix
+    new_file_path = file.file_path.parent / new_file
+    shutil.copy2(file.file_path, new_file_path)
+    return create_file_data(new_file_path)
 
 def create_file_data(clean_fp):
     if "doors" in clean_fp.name.lower():
