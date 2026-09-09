@@ -1,4 +1,4 @@
-from excel_tool.functions import collection, load, compare
+from excel_tool.functions import collection, load, compare, write
 
 
 
@@ -33,6 +33,9 @@ def main():
 
     #Turn list into column
     l1_df = load.load_missing_IDs_to_column(list_one)
+
+    # Write list 1 to DOORS on a new sheet
+    write.write_df_to_new_sheet(DOORS_data, l1_df, "List One")
 
     
     print(DOORS_Originating_IDs)
