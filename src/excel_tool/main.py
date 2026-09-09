@@ -16,8 +16,8 @@ def main():
     Block_8_Rubric_clean = collection.get_clean_path(Block_8_Rubric)
 
     # create file data
-    DOORS_data = collection.create_file_data(DOORS_req_clean)
-    Block_8_Rubric_data = collection.create_file_data(Block_8_Rubric_clean)
+    DOORS_data = collection.create_file_data(DOORS_req_clean, "DOORS")
+    Block_8_Rubric_data = collection.create_file_data(Block_8_Rubric_clean, "Rubric")
 
     # Make a copy of DOORS to keep original safe
     DOORS_out = collection.make_copy_of_file(DOORS_data)

@@ -32,14 +32,14 @@ def make_copy_of_file(file: File_data):
     new_file = file.file_path.stem + "_reconciled" + file.file_path.suffix
     new_file_path = file.file_path.parent / new_file
     shutil.copy2(file.file_path, new_file_path)
-    return create_file_data(new_file_path)
+    return create_file_data(new_file_path, file.file_role)
 
-def create_file_data(clean_fp):
+def create_file_data(clean_fp, role):
     if "doors" in clean_fp.name.lower():
-        DOORS = File_data(file_name=clean_fp.name, file_path=clean_fp)
+        DOORS = File_data(file_name=clean_fp.name, file_path=clean_fp, file_role=role)
         return DOORS
     else:
-        Block_8_Rubric = File_data(file_name=clean_fp.name, file_path=clean_fp)
+        Block_8_Rubric = File_data(file_name=clean_fp.name, file_path=clean_fp, file_role=role)
         return Block_8_Rubric
 
 
