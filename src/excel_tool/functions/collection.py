@@ -35,7 +35,7 @@ def make_copy_of_file(file: File_data):
     return create_file_data(new_file_path, file.file_role)
 
 def create_file_data(clean_fp, role):
-    if "doors" in clean_fp.name.lower():
+    if role.upper() == "DOORS":
         DOORS = File_data(file_name=clean_fp.name, file_path=clean_fp, file_role=role)
         return DOORS
     else:
@@ -44,5 +44,5 @@ def create_file_data(clean_fp, role):
 
 
 def explode_multi_ID_cells(df, col_name):
-    explode_df = df[col_name].str.split("\n").explode().str.split().explode().dropna().to_list()
+    explode_df = df[col_name].str.split("\n").explode().str.split().explode().dropna()
     return explode_df

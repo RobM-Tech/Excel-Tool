@@ -49,20 +49,21 @@ def test_create_file_data_DOORS():
     test_file = "USAF_Block_8_1_DOORS_Reqs.xlsx"
     
     raw = Path(f"c:/Users/Rob/Desktop/excel sheets/{test_file}")
-    result = create_file_data(raw)
+    result = create_file_data(raw, "DOORS")
 
     assert result.file_name == test_file
     assert result.file_path == raw
+    assert result.file_role == "DOORS"
 
 def test_create_file_data_Block_8_Rubric():
     test_file = "USAF_Block_8_1_Rubric.xlsx"
     
     raw = Path(f"c:/Users/Rob/Desktop/excel sheets/{test_file}")
-    result = create_file_data(raw)
+    result = create_file_data(raw, "RUBRIC")
 
     assert result.file_name == test_file
     assert result.file_path == raw
-
+    assert result.file_role == "RUBRIC"
 # Test explode_multi_ID_cells()
 
 def test_explode_multi_ID_cells():
