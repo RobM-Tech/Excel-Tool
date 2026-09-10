@@ -19,7 +19,7 @@ def main():
     DOORS_data = collection.create_file_data(DOORS_req_clean, "DOORS")
     Block_8_Rubric_data = collection.create_file_data(Block_8_Rubric_clean, "RUBRIC")
 
-    # Make a copy of DOORS to keep original safe
+    # Make a copy of DOORS to keep original safe when writing
     DOORS_out = collection.make_copy_of_file(DOORS_data)
 
     #load workbooks into datafields
@@ -28,19 +28,35 @@ def main():
 
     # Convert columns to lists
     # Extract multiple-IDs in on cell preserve order
-    DOORS_Originating_IDs = collection.explode_multi_ID_cells(DOORS_df, "Originating ID")
+    DOORS_exploded_df = collection.explode_multi_ID_cells(DOORS_df, "Originating ID")
+
     # Make Rubric ID column a set for quick comparison
     Block_8_Rubric_Originating_IDs = set(Block_8_Rubric_df["Block 8.1 Full"])
 
     # Pass to list 1 comparison function
-    list_one = list(compare.list_one_rubric_to_DOORS(Block_8_Rubric_Originating_IDs, DOORS_Originating_IDs.to_list()))
+    list_one = compare.list_one_rubric_to_DOORS(
+                                            Block_8_Rubric_Originating_IDs, 
+                                            DOORS_exploded_df["Originating ID"].to_list())
 
-    #Turn list into column
-    l1_df = load.load_list1_missing_IDs_to_column(list_one)
+    # Pass to list 2 comparison runction
+    list_two = compare.list_2_DOORS_to_rubric(
+                                            DOORS_exploded_df,
+                                            Block_8_Rubric_Originating_IDs)
 
-    # Write list 1 to DOORS on a new sheet
-    write.write_df_to_new_sheet(DOORS_out, l1_df, "List One")
+    
 
-    print(DOORS_Originating_IDs)
+    # Added Extra flagging
+    # Flag rows in DOORS with multiple Originating IDs in one cell
+    # Get the index of rows that have multiple IDs
+    flagged_indexs = DOORS_exploded_df.index[DOORS_exploded_df.index.duplicated()].unique()
+
+    flagged_idx_list = collection.flag_multi_ID_cells(DOORS_df, flagged_indexs)
+
+    # Write lists to DOORS on a new sheet
+    write.write_df_to_new_sheet(DOORS_out, list_one, "List One")
+    write.write_df_to_new_sheet(DOORS_out, list_two.iloc[:, [0, 2]], "List Two")
+
+    print(flagged_idx_list)
+    #print(DOORS_exploded_df.index[DOORS_exploded_df.index.duplicated()].unique())
 if __name__ == "__main__":
     main()

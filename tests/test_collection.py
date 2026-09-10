@@ -68,17 +68,22 @@ def test_create_file_data_Block_8_Rubric():
 
 def test_explode_multi_ID_cells():
     df = pd.DataFrame({
-    "doc_id": [1, 2, 3, 4],
-    "raw_text": [
-        "Hello World\nBeautiful Day",       
-        "Line one\n\nLine three",           
-        "  Spaces  everywhere  \n",         
-        None                                
-        ]
+        "doc_id": [1, 2, 3, 4],
+        "raw_text": [
+            "Hello World\nBeautiful Day",
+            "Line one\n\nLine three",
+            "  Spaces  everywhere  \n",
+            None,
+        ],
     })
 
-    col_name = "raw_text"
-    result = explode_multi_ID_cells(df, col_name)
-    expected = ['Hello', 'World', 'Beautiful', 'Day', 'Line', 'one', 'Line', 'three', 'Spaces', 'everywhere']
+    result = explode_multi_ID_cells(df, "raw_text")
 
-    assert result == expected
+    expected_values = [
+        "Hello", "World", "Beautiful", "Day",
+        "Line", "one", "Line", "three",
+        "Spaces", "everywhere",
+    ]
+
+    assert list(result["raw_text"]) == expected_values
+    assert list(result["doc_id"]) == [1, 1, 1, 1, 2, 2, 2, 2, 3, 3]
