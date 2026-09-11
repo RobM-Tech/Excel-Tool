@@ -1,36 +1,43 @@
-# excel-tool
+# Excel-Tool
 
-A focused Python utility for reconciling requirements data between two Excel workbooks (a DOORS export and a rubric of originating requirements).
+Python utility that reconciles requirements between a **DOORS export** and a **rubric** of originating requirement IDs.
+
+Built for repeated baseline reconciliations where the workbook layout stays the same.
 
 ## Problem
 
-When requirements are imported into a requirements-management system they are often split into multiple component rows that share the same originating identifier. Manually comparing the system export against the original rubric is time-consuming and error-prone, especially across repeated configuration baselines.
+Requirements imported into DOORS are often split across multiple rows that share an Originating ID. Manually comparing the DOORS export to the original rubric is slow and error-prone across successive configurations.
 
 ## What it does
 
-Given two workbooks it produces three clear result sheets inside the DOORS workbook:
+Given two Excel workbooks:
 
-1. Originating IDs present in the rubric but missing from the DOORS export  
-2. Originating IDs present in the DOORS export but absent from the rubric  
-3. Rows inside the DOORS export that share identical Object Text (excluding n/a values)
+1. **DOORS export** — `ID`, `Object Text`, `Originating ID`
+2. **Rubric** — column of originating requirement IDs
 
-The tool is designed to be reused across multiple similar reconciliation jobs that share the same overall format.
+the tool writes a **copy** of the DOORS workbook (the original is never modified) and adds:
+
+| Sheet | Description |
+|-------|-------------|
+| **List One** | Originating IDs in the rubric but not in DOORS |
+| **List Two** | Originating IDs in DOORS but not in the rubric (with DOORS `ID`) |
+| **List Three** | DOORS rows that share the same Object Text (excluding `n/a`) |
+| **List Four** | DOORS rows where Originating ID contains more than one ID (data-quality flag) |
+
+Multi-value Originating ID cells are split for comparison. Presence means at least one occurrence.
 
 ## Tech stack
 
 - Python 3.12+
-- uv + pyproject.toml for environment and dependency management
-- pandas for data comparison
-- openpyxl for reading/writing Excel structure and adding result sheets
-- src layout
+- uv + `pyproject.toml`
+- pandas
+- openpyxl
+- pytest
+- `src/` layout
 
-## Current status
+## Setup
 
-Early project scaffolding. Core reconciliation logic and CLI are not yet implemented. This repository currently contains only the project structure and documentation.
-
-## Design goals
-
-- Correct handling of duplicate Originating IDs (presence = at least one occurrence)
-- Clean separation between data loading, comparison, and output writing
-- Minimal configuration changes required for subsequent similar jobs
-- No proprietary requirement text stored in the repository
+```bash
+git clone https://github.com/RobM-Tech/Excel-Tool.git
+cd Excel-Tool
+uv sync
