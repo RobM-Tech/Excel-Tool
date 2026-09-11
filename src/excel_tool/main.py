@@ -43,6 +43,9 @@ def main():
                                             DOORS_exploded_df,
                                             Block_8_Rubric_Originating_IDs)
 
+    # Pass to list 3 filter
+    list_three = compare.compare_obj_text(DOORS_df)
+
     
 
     # Added Extra flagging
@@ -54,9 +57,9 @@ def main():
 
     # Write lists to DOORS on a new sheet
     write.write_df_to_new_sheet(DOORS_out, list_one, "List One")
-    write.write_df_to_new_sheet(DOORS_out, list_two.iloc[:, [0, 2]], "List Two")
+    write.write_df_to_new_sheet(DOORS_out, list_two[["ID", "Originating ID"]], "List Two")
+    write.write_df_to_new_sheet(DOORS_out, list_three, "List Three")
+    write.write_df_to_new_sheet(DOORS_out, flagged_idx_list, "List Four")
 
-    print(flagged_idx_list)
-    #print(DOORS_exploded_df.index[DOORS_exploded_df.index.duplicated()].unique())
 if __name__ == "__main__":
     main()
