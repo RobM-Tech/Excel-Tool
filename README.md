@@ -41,3 +41,42 @@ Multi-value Originating ID cells are split for comparison. Presence means at lea
 git clone https://github.com/RobM-Tech/Excel-Tool.git
 cd Excel-Tool
 uv sync
+
+
+## Usage
+
+```bash
+uv run python -m excel_tool.main
+```
+
+When prompted, drag and drop the DOORS file, then the Rubric file.  
+Output is written next to the DOORS file as `*_reconciled.xlsx`.
+
+## Project layout
+
+```text
+src/excel_tool/
+  main.py
+  config/data_config.py
+  functions/
+    collection.py
+    load.py
+    compare.py
+    write.py
+tests/
+```
+
+## Design notes
+
+- Original DOORS file is never overwritten
+- File roles (`DOORS` / `RUBRIC`) are explicit
+- Exploded Originating IDs keep the original row index for multi-ID flagging
+- Pipeline is reusable for additional file pairs with the same format
+
+## Status
+
+First Block 8.1 reconciliation complete. Ready for the next file sets; minor column or sheet name adjustments can be made as those arrive.
+
+## Data
+
+No proprietary requirement text is stored in this repository.
