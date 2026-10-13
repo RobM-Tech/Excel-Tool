@@ -9,8 +9,8 @@ def main():
     master          = input("Please drop master file here: ")
 
     # Get helper file paths
-    obj_with_OID = input("Please drop Objects file here: ")
-    branch_off = input("Please drop Objects file here: ")
+    obj_with_OID = input("Please drop ObjectsWithOrigIDNotUSAF81 file here: ")
+    branch_off = input("Please drop BranchOffOf file here: ")
 
     # Clean paths
     doors_req_clean      = collection.get_clean_path(doors_req)
@@ -27,7 +27,7 @@ def main():
     # Helpers file data
     obj_with_OID_data = collection.create_file_data(obj_with_OID_clean, "NOT_USAF81")
     branch_off_data = collection.create_file_data(branch_off_clean, "BRANCH_OFF")
-    
+
     # Make a copy of DOORS to keep original safe when writing
     doors_out = collection.make_copy_of_file(doors_data)
 
@@ -35,6 +35,9 @@ def main():
     doors_df          = load.load_workbook(doors_data)
     block_8_rubric_df = load.load_workbook(block_8_rubric_data)
     master_df         = load.load_workbook(master_data)
+    # Load helpers into datafields
+    obj_with_OID_df   = load.load_workbook(obj_with_OID_data)
+    branch_off_df     = load.load_workbook(branch_off_data)
 
     # Extract multiple-IDs in one cell preserve order
     doors_exploded_df  = collection.explode_multi_ID_cells(doors_df, "Originating ID")

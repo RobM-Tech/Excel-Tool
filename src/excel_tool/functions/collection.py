@@ -4,7 +4,7 @@ import shutil
 
 from pathlib import Path
 from excel_tool.config.data_config import File_data
-from excel_tool.functions.load import load_workbook
+
 
 def get_clean_path(file_path):
     # Strip quotes and fix terminal-escaped spaces
