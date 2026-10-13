@@ -8,17 +8,26 @@ def main():
     block_8_rubric  = input("Please drop Block_8_Rubric file here: ")
     master          = input("Please drop master file here: ")
 
+    # Get helper file paths
+    obj_with_OID = input("Please drop Objects file here: ")
+    branch_off = input("Please drop Objects file here: ")
 
     # Clean paths
     doors_req_clean      = collection.get_clean_path(doors_req)
     block_8_rubric_clean = collection.get_clean_path(block_8_rubric)
     master_clean         = collection.get_clean_path(master)
+    # Helpers clean paths
+    obj_with_OID_clean = collection.get_clean_path(obj_with_OID)
+    branch_off_clean = collection.get_clean_path(branch_off)
 
     # Create file data
     doors_data          = collection.create_file_data(doors_req_clean, "DOORS")
     block_8_rubric_data = collection.create_file_data(block_8_rubric_clean, "RUBRIC")
     master_data         = collection.create_file_data(master_clean, "MASTER")
-
+    # Helpers file data
+    obj_with_OID_data = collection.create_file_data(obj_with_OID_clean, "NOT_USAF81")
+    branch_off_data = collection.create_file_data(branch_off_clean, "BRANCH_OFF")
+    
     # Make a copy of DOORS to keep original safe when writing
     doors_out = collection.make_copy_of_file(doors_data)
 
