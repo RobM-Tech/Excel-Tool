@@ -33,26 +33,21 @@ def make_copy_of_file(file: File_data):
     new_file = file.file_path.stem + "_reconciled" + file.file_path.suffix
     new_file_path = file.file_path.parent / new_file
     shutil.copy2(file.file_path, new_file_path)
-    return create_file_data(new_file_path, file.file_role)
+    role = file.file_role + "_C"
+    return create_file_data(new_file_path, role)
 
 def create_file_data(clean_fp, role):
-    if role.upper() == "DOORS":
-        DOORS = File_data(file_name=clean_fp.name, file_path=clean_fp, file_role=role)
-        return DOORS
-    else:
-        Block_8_Rubric = File_data(file_name=clean_fp.name, file_path=clean_fp, file_role=role)
-        return Block_8_Rubric
+    file_data = File_data(file_name=clean_fp.name, file_path=clean_fp, file_role=role)
+    return file_data
 
 
 def explode_multi_ID_cells(df, col_name):
     # Make copy of df and replace \n with empty space
     df_copy = df.copy()
-    df_copy[col_name] = df_copy[col_name].astype(str).str.replace("\n", " ")
+    # Pattern to catch tags on Originating ID's
+    pattern = r'[\w-]+(?:\s*\([^)]+\))?'
 
-    # Split on empty space, turns multi ids in a cell to list
-    df_copy[col_name] = df_copy[col_name].str.split()
-
-    # Explode the entire df on that column
+    df_copy[col_name] = df_copy[col_name].astype(str).str.findall(pattern)
     explode_df = df_copy.explode(col_name)
 
     # Drop row if OID cell is empty
