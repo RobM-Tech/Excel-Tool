@@ -43,6 +43,10 @@ def main():
     doors_exploded_df  = collection.explode_multi_ID_cells(doors_df, "Originating ID")
     master_exploded_df = collection.explode_multi_ID_cells(master_df, "Originating ID")
 
+    # Get helper maps
+    obj_with_OID_map = None
+    branch_off_map = None
+
 
     # Make Rubric ID column a set for quick comparison
     block_8_rubric_originating_ids = set(block_8_rubric_df["Block 8.1 Full"])

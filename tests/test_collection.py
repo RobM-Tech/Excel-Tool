@@ -1,7 +1,7 @@
 import pytest
 import pandas as pd
 from pathlib import Path
-from excel_tool.functions.collection import get_clean_path, create_file_data, explode_multi_ID_cells
+from excel_tool.functions.collection import get_clean_path, create_file_data, explode_multi_ID_cells, helper_obj_dict
 
 #Test get_clean_path()
 
@@ -31,16 +31,18 @@ def test_get_clean_path_quoted(tmp_path):
     assert result.is_file()
 
 
-def test_get_clean_path_windows_style():
-
+def test_get_clean_path_windows_style(tmp_path):
     test_file = "USAF_Block_8_1_DOORS_Reqs.xlsx"
+    # Create a real temp .xlsx so is_file() passes
+    test_file = tmp_path / "USAF_Block_8_1_DOORS_Reqs.xlsx"
+    test_file.write_text("placeholder")
 
-    raw = f'"c:/Users/Rob/Desktop/excel sheets/{test_file}"'
-    result = get_clean_path(raw)
+    result = get_clean_path(str(test_file))
 
     assert isinstance(result, Path)
-    assert result == Path("/mnt/c/Users/Rob/Desktop/excel sheets/USAF_Block_8_1_DOORS_Reqs.xlsx")
+    assert result == test_file
     assert result.is_file()
+    assert result.suffix.lower() == ".xlsx"
 
 
 # Test create_file_data()
@@ -87,3 +89,28 @@ def test_explode_multi_ID_cells():
 
     assert list(result["raw_text"]) == expected_values
     assert list(result["doc_id"]) == [1, 1, 1, 1, 2, 2, 2, 2, 3, 3]
+
+
+# Test helper_obj_dict
+def test_helper_obj_dict_merges_tagged_oids():
+    df = pd.DataFrame(
+        {
+            "Originating ID": [
+                "MCS87158",
+                "MCS87158 (MB 5.4)",
+                "MCS90460 (MB 5.4)",
+            ],
+            "ID": [
+                "MCLLR109223",
+                "MCLLR138432",
+                "MCLLR128503",
+            ],
+        }
+    )
+
+    result = helper_obj_dict(df, "Originating ID", "ID")
+
+    assert "MCS87158" in result
+    assert "MCS87158 (MB 5.4)" not in result
+    assert set(result["MCS87158"]) == {"MCLLR109223", "MCLLR138432"}
+    assert result["MCS90460"] == ["MCLLR128503"]

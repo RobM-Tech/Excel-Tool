@@ -2,6 +2,7 @@ import platform
 import shutil
 
 
+from excel_tool.config import data_config
 from pathlib import Path
 from excel_tool.config.data_config import File_data
 
@@ -63,6 +64,38 @@ def flag_multi_ID_cells(df, flagged_list):
     df_copy = df.copy()
 
     return df_copy.loc[flagged_list]
+
+
+def helper_obj_dict(df, key_col, value_col):
+    remove_parentheses_pattern = r'\s*\([^)]+\)'
+    extract_pattern = r'[\w-]+'
+    
+    df_copy = df.copy()
+
+    # Strip trailing white space
+    df_copy[value_col] = df_copy[value_col].str.rstrip()
+    # Clean up and isolate individual keys
+    df_copy[key_col] = df_copy[key_col].str.replace(remove_parentheses_pattern, '', regex=True)
+    df_copy[key_col] = df_copy[key_col].str.findall(extract_pattern)
+    # Drop key column with no value
+    df_copy = df_copy.dropna(subset=[key_col])
+
+    # Reshape so every key maps directly to its ID row
+    df_copy = df_copy.explode(key_col)
+    df_copy[key_col] = df_copy[key_col].str.strip()
+
+    # Drop empties in value col
+    df_copy = df_copy.dropna(subset=[value_col])
+
+    # Create dict key = OID, Value = MCLLRs
+    result_dict = (
+        df_copy.groupby(key_col)[value_col]
+        .apply(lambda x: list(set(x)))
+        .to_dict()
+    )
+    
+    return result_dict
+
 
 
 
