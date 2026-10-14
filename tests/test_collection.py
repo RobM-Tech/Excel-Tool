@@ -1,7 +1,11 @@
 import pytest
 import pandas as pd
 from pathlib import Path
-from excel_tool.functions.collection import get_clean_path, create_file_data, explode_multi_ID_cells, helper_obj_dict
+from excel_tool.functions.collection import (get_clean_path, 
+                                             create_file_data, 
+                                             explode_multi_ID_cells, 
+                                             helper_obj_dict,
+                                             helper_branch_off_map)
 
 #Test get_clean_path()
 
@@ -114,3 +118,44 @@ def test_helper_obj_dict_merges_tagged_oids():
     assert "MCS87158 (MB 5.4)" not in result
     assert set(result["MCS87158"]) == {"MCLLR109223", "MCLLR138432"}
     assert result["MCS90460"] == ["MCLLR128503"]
+
+# Test helper_branch_off_map()
+def test_helper_branch_off_map_parent_to_child_pairs():
+    df = pd.DataFrame(
+        {
+            "Branch Off of": [
+                "MCLLR149971",
+                "MCLLR109223",
+                "MCLLR109223 (MB 5.4)",  # tag should normalize into same parent key
+            ],
+            "ID": [
+                "MCLLR149973",
+                "MCLLR138432",
+                "MCLLR148259",
+            ],
+            "Configuration": [
+                "MB 6.0\nUSAF_BASIC 8.1\nXAFull",
+                "FRANCE KC 6.5.2",
+                "",
+            ],
+        }
+    )
+
+    result = helper_branch_off_map(
+        df,
+        parent_col="Branch Off of",
+        child_col1="ID",
+        child_col2="Configuration",
+    )
+
+    assert "MCLLR149971" in result
+    assert ("MCLLR149973", "MB 6.0\nUSAF_BASIC 8.1\nXAFull") in result["MCLLR149971"]
+
+    assert "MCLLR109223" in result
+    child_ids = {pair[0] for pair in result["MCLLR109223"]}
+    assert child_ids == {"MCLLR138432", "MCLLR148259"}
+
+    # Config left as full string (approach B) — newlines preserved for later splitlines check
+    configs = {pair[1] for pair in result["MCLLR109223"]}
+    assert "FRANCE KC 6.5.2" in configs
+    assert "" in configs
