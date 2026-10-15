@@ -2,6 +2,7 @@ import pandas as pd
 
 from excel_tool.config.data_config import config_tag
 
+
 def list_one_rubric_to_DOORS(Rubric_Originating_IDs, DOORS_Originating_IDs):
     missing_IDs = list((Rubric_Originating_IDs) - set(DOORS_Originating_IDs))
 
@@ -48,3 +49,42 @@ def has_config_tag(config_str):
 
     return False
         
+# Being filter walk for list 1
+def filter_list_one(l1_oids, map_a, map_b):
+    kept = []
+
+    for oid in l1_oids:
+        if oid not in map_a:
+            kept.append(oid)
+            continue
+
+        # List of associated mcllrs to list 1 oid
+        mcllrs = map_a[oid]
+        # Loop through the mcllrs and check if they meet requirements
+        if any(is_covered(m, map_b) for m in mcllrs):
+            pass # If true dont add
+
+        else:
+            kept.append(oid)
+
+    return pd.DataFrame({"Originating ID": kept})
+
+def is_covered(start_mcllr, map_b):
+    q = [start_mcllr]
+    seen = set()
+    # Run till we empty q
+    while q:
+        current = q.pop(0)
+        if current in seen:
+            continue
+        seen.add(current)
+        # children of oid in q, id(mcllr), config values
+        children = map_b.get(current, [])
+        for child_id, config in children:
+            if has_config_tag(config):
+                return True
+            
+            # Keep running till match/ no match
+            q.append(child_id)
+
+    return False

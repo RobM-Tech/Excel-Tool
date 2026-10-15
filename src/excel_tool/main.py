@@ -44,8 +44,8 @@ def main():
     master_exploded_df = collection.explode_multi_ID_cells(master_df, "Originating ID")
 
     # Get helper maps
-    obj_with_OID_map = None
-    branch_off_map = None
+    obj_with_OID_dict = collection.helper_obj_dict(obj_with_OID_df, "Originating ID", "ID")
+    branch_off_dict = collection.helper_branch_off_map(branch_off_df, "Branch Off of", "ID", "Configuration" )
 
 
     # Make Rubric ID column a set for quick comparison
@@ -55,13 +55,17 @@ def main():
     list_one = compare.list_one_rubric_to_DOORS(
                                             block_8_rubric_originating_ids, 
                                             doors_exploded_df["Originating ID"].to_list())
+
+    list_one_filtered = compare.filter_list_one(list_one["Originating ID"].to_list(),
+                                                obj_with_OID_dict,
+                                                branch_off_dict )
+
     # pd.merge() dataframes to find all occurances
-    list_one_merged_df = list_one.merge(
+    list_one_merged_df = list_one_filtered.merge(
                                         master_exploded_df[['Originating ID', 'ID']], 
                                         on="Originating ID", 
                                         how="left"
                                        )
-
 
     # Pass to list 2 comparison runction
     list_two = compare.list_2_DOORS_to_rubric(

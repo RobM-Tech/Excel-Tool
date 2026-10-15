@@ -155,7 +155,7 @@ def test_helper_branch_off_map_parent_to_child_pairs():
     child_ids = {pair[0] for pair in result["MCLLR109223"]}
     assert child_ids == {"MCLLR138432", "MCLLR148259"}
 
-    # Config left as full string (approach B) — newlines preserved for later splitlines check
+    # Config left as full string— newlines preserved for later splitlines check
     configs = {pair[1] for pair in result["MCLLR109223"]}
     assert "FRANCE KC 6.5.2" in configs
     assert "" in configs

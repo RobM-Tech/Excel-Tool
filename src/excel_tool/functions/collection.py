@@ -45,17 +45,21 @@ def create_file_data(clean_fp, role):
 def explode_multi_ID_cells(df, col_name):
     # Make copy of df and replace \n with empty space
     df_copy = df.copy()
-    # Pattern to catch tags on Originating ID's
-    pattern = r'[\w-]+(?:\s*\([^)]+\))?'
+    # Patterns to catch IDs and remove tags
+    remove_parentheses_pattern = r'\s*\([^)]+\)'
+    extract_pattern = r'[\w-]+'
 
-    df_copy[col_name] = df_copy[col_name].astype(str).str.findall(pattern)
+    df_copy[col_name] = df_copy[col_name].str.replace(remove_parentheses_pattern, '', regex=True)
+    df_copy[col_name] = df_copy[col_name].astype(str).str.findall(extract_pattern)
     explode_df = df_copy.explode(col_name)
+    
 
     # Drop row if OID cell is empty
     explode_df = explode_df.dropna(subset=[col_name])
 
     # Clean any empty strings
     explode_df = explode_df[explode_df[col_name] != ""]
+    explode_df[col_name] = explode_df[col_name].str.strip()
 
     return explode_df
 
