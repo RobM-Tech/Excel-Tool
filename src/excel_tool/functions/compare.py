@@ -9,17 +9,32 @@ def list_one_rubric_to_DOORS(Rubric_Originating_IDs, DOORS_Originating_IDs):
     return pd.DataFrame({"Originating ID": missing_IDs})
 
 
-#List 2: each Originating ID present in DOORS but not in the Rubric 
-# (one output row per ID after splitting multi-value cells). 
+#List 2: each Originating ID present in DOORS but not in the Rubric  
 # Multi-ID source rows are also reported on the flag sheet.
+# Checks if any of the muti-IDs are in Rubric, if any pass the OID is OK
 def list_2_DOORS_to_rubric(exploded_df ,Rubric_set):
     missing_IDs = []
+    # List of original indexs
+    original_indexs = exploded_df.index.unique()
 
-    for idx, row in exploded_df.iterrows():
-        if row["Originating ID"] not in Rubric_set:
-            missing_IDs.append(row)
+    for idx in original_indexs:
+        # Grab all rows for this specific index
+        sub_df = exploded_df.loc[[idx]]
 
-    return pd.DataFrame(missing_IDs)
+        # Check if id is in Rubric
+        id_passes = sub_df["Originating ID"].isin(Rubric_set)
+
+        # Check if ANY come back true
+        if id_passes.any():
+            # At least one passed, do nothing.
+            continue
+        else:
+            # None passed, add to missing
+            missing_IDs.append(idx)
+
+
+
+    return exploded_df.loc[missing_IDs].drop_duplicates()
 
 
 def compare_obj_text(df):
