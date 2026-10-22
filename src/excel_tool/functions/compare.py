@@ -13,28 +13,17 @@ def list_one_rubric_to_DOORS(Rubric_Originating_IDs, DOORS_Originating_IDs):
 # Multi-ID source rows are also reported on the flag sheet.
 # Checks if any of the muti-IDs are in Rubric, if any pass the OID is OK
 def list_2_DOORS_to_rubric(exploded_df ,Rubric_set):
-    missing_IDs = []
-    # List of original indexs
-    original_indexs = exploded_df.index.unique()
+    # Check what rows have an oid thats in Rubric
+    in_rubric = exploded_df[column_names["oid"]].isin(Rubric_set)
 
-    for idx in original_indexs:
-        # Grab all rows for this specific index
-        sub_df = exploded_df.loc[[idx]]
+    # Group by index and check if ANY row in that group passed
+    index_passes = in_rubric.groupby(exploded_df.index).transform("any")
 
-        # Check if id is in Rubric
-        id_passes = sub_df[column_names["oid"]].isin(Rubric_set)
+    # Keep only only rows where index completly failed to match
+    missing_ids = exploded_df[~index_passes]
 
-        # Check if ANY come back true
-        if id_passes.any():
-            # At least one passed, do nothing.
-            continue
-        else:
-            # None passed, add to missing
-            missing_IDs.append(idx)
-
-
-
-    return exploded_df.loc[missing_IDs].drop_duplicates()
+    # Remove duplicate rows, df
+    return missing_ids.drop_duplicates()
 
 
 def compare_obj_text(df):
