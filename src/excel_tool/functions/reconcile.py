@@ -1,3 +1,4 @@
+from excel_tool.config.data_config import column_names
 from excel_tool.functions import (collection,
                                   load,
                                   compare,
@@ -25,15 +26,22 @@ def run_reconcile(doors_path, rubric_path, master_path=None, helper_a_path=None,
     obj_with_OID_df   = load.load_workbook(obj_with_OID_data)
     branch_off_df     = load.load_workbook(branch_off_data)
 
-
+    
     # Extract multiple-IDs in one cell preserve order
-    doors_exploded_df  = collection.explode_multi_ID_cells(doors_df, "Originating ID")
-    master_exploded_df = collection.explode_multi_ID_cells(master_df, "Originating ID")
+    doors_exploded_df  = collection.explode_multi_ID_cells(doors_df, column_names["oid"])
+    master_exploded_df = collection.explode_multi_ID_cells(master_df, column_names["oid"])
 
 
     # Create helper dicts
-    obj_with_OID_dict = collection.helper_obj_dict(obj_with_OID_df, "Originating ID", "ID")
-    branch_off_dict = collection.helper_branch_off_map(branch_off_df, "Branch Off of", "ID", "Configuration" )
+    obj_with_OID_dict = collection.helper_obj_dict(obj_with_OID_df, 
+                                                   column_names["oid"], 
+                                                   column_names["doors_id"]
+                                                   )
+    branch_off_dict = collection.helper_branch_off_map(branch_off_df, 
+                                                       column_names["branch_off"], 
+                                                       column_names["doors_id"], 
+                                                       column_names["config"]
+                                                       )
 
 
     # Make Rubric ID column a set for quick comparison
@@ -47,17 +55,17 @@ def run_reconcile(doors_path, rubric_path, master_path=None, helper_a_path=None,
     # Pass to list 1 comparison function
     list_one = compare.list_one_rubric_to_DOORS(
                                             block_8_rubric_originating_ids, 
-                                            doors_exploded_df["Originating ID"].to_list())
+                                            doors_exploded_df[column_names["oid"]].to_list())
 
     # Run list one against new filter (objwithnoUSAF, BranchOffof)
-    list_one_filtered = compare.filter_list_one(list_one["Originating ID"].to_list(),
+    list_one_filtered = compare.filter_list_one(list_one[column_names["oid"]].to_list(),
                                                 obj_with_OID_dict,
                                                 branch_off_dict )
 
     # pd.merge() dataframes to find all occurances
     list_one_merged_df = list_one_filtered.merge(
                                         master_exploded_df[['Originating ID', 'ID']], 
-                                        on="Originating ID", 
+                                        on=column_names["oid"], 
                                         how="left"
                                        )
 
@@ -79,6 +87,6 @@ def run_reconcile(doors_path, rubric_path, master_path=None, helper_a_path=None,
 
     # Write lists to DOORS on a new sheet
     write.write_df_to_new_sheet(doors_out, list_one_merged_df, "List One")
-    write.write_df_to_new_sheet(doors_out, list_two[["ID", "Originating ID"]], "List Two")
+    write.write_df_to_new_sheet(doors_out, list_two[[column_names["doors_id"], column_names["oid"]]], "List Two")
     write.write_df_to_new_sheet(doors_out, list_three, "List Three")
     write.write_df_to_new_sheet(doors_out, flagged_idx_list, "List Four")

@@ -1,5 +1,5 @@
 from excel_tool.functions.compare import has_config_tag, is_covered, filter_list_one
-from excel_tool.config.data_config import config_tag
+from excel_tool.config.data_config import config_tag, column_names
 
 def test_has_config_tag_exact_line_match():
     multiline = (
@@ -55,8 +55,8 @@ def test_is_covered_and_filter_list_one():
 
     kept = filter_list_one(l1, map_a, map_b)
 
-    assert list(kept.columns) == ["Originating ID"]
-    kept_oids = kept["Originating ID"].tolist()
+    assert list(kept.columns) == [column_names["oid"]]
+    kept_oids = kept[column_names["oid"]].tolist()
 
     assert "OID_NOT_IN_A" in kept_oids
     assert "OID_FAIL" in kept_oids

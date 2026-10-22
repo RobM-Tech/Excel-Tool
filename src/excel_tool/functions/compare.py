@@ -1,12 +1,12 @@
 import pandas as pd
 
-from excel_tool.config.data_config import config_tag
+from excel_tool.config.data_config import config_tag, column_names
 
 
 def list_one_rubric_to_DOORS(Rubric_Originating_IDs, DOORS_Originating_IDs):
     missing_IDs = list((Rubric_Originating_IDs) - set(DOORS_Originating_IDs))
 
-    return pd.DataFrame({"Originating ID": missing_IDs})
+    return pd.DataFrame({column_names["oid"]: missing_IDs})
 
 
 #List 2: each Originating ID present in DOORS but not in the Rubric  
@@ -22,7 +22,7 @@ def list_2_DOORS_to_rubric(exploded_df ,Rubric_set):
         sub_df = exploded_df.loc[[idx]]
 
         # Check if id is in Rubric
-        id_passes = sub_df["Originating ID"].isin(Rubric_set)
+        id_passes = sub_df[column_names["oid"]].isin(Rubric_set)
 
         # Check if ANY come back true
         if id_passes.any():
@@ -41,13 +41,13 @@ def compare_obj_text(df):
     df_copy = df.copy()
 
     # Standardize to lowercase
-    lower_case_col = df_copy["Object Text"].str.lower()
+    lower_case_col = df_copy[column_names["doors_text"]].str.lower()
 
     # Find all duplicates
     all_dup_text = lower_case_col.duplicated(keep=False)
 
     # Filter n/a out
-    dup_text = all_dup_text & (lower_case_col != "n/a") & df_copy["Object Text"].notna()
+    dup_text = all_dup_text & (lower_case_col != "n/a") & df_copy[column_names["doors_text"]].notna()
 
     return df_copy[dup_text]
 
@@ -75,14 +75,14 @@ def filter_list_one(l1_oids, map_a, map_b):
 
         # List of associated mcllrs to list 1 oid
         mcllrs = map_a[oid]
-        # Loop through the mcllrs and check if they meet requirements
+        # Loop through the mcllrs and check if they meet oids
         if any(is_covered(m, map_b) for m in mcllrs):
             pass # If true dont add
 
         else:
             kept.append(oid)
 
-    return pd.DataFrame({"Originating ID": kept})
+    return pd.DataFrame({column_names["oid"]: kept})
 
 def is_covered(start_mcllr, map_b):
     q = [start_mcllr]

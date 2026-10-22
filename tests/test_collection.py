@@ -1,6 +1,7 @@
 import pytest
 import pandas as pd
 from pathlib import Path
+from excel_tool.config.data_config import column_names
 from excel_tool.functions.collection import (get_clean_path, 
                                              create_file_data, 
                                              explode_multi_ID_cells, 
@@ -99,12 +100,12 @@ def test_explode_multi_ID_cells():
 def test_helper_obj_dict_merges_tagged_oids():
     df = pd.DataFrame(
         {
-            "Originating ID": [
+            column_names["oid"]: [
                 "MCS87158",
                 "MCS87158 (MB 5.4)",
                 "MCS90460 (MB 5.4)",
             ],
-            "ID": [
+            column_names["doors_id"]: [
                 "MCLLR109223",
                 "MCLLR138432",
                 "MCLLR128503",
@@ -112,7 +113,7 @@ def test_helper_obj_dict_merges_tagged_oids():
         }
     )
 
-    result = helper_obj_dict(df, "Originating ID", "ID")
+    result = helper_obj_dict(df, column_names["oid"], column_names["doors_id"])
 
     assert "MCS87158" in result
     assert "MCS87158 (MB 5.4)" not in result
@@ -123,17 +124,17 @@ def test_helper_obj_dict_merges_tagged_oids():
 def test_helper_branch_off_map_parent_to_child_pairs():
     df = pd.DataFrame(
         {
-            "Branch Off of": [
+            column_names["branch_off"]: [
                 "MCLLR149971",
                 "MCLLR109223",
                 "MCLLR109223 (MB 5.4)",  # tag should normalize into same parent key
             ],
-            "ID": [
+            column_names["doors_id"]: [
                 "MCLLR149973",
                 "MCLLR138432",
                 "MCLLR148259",
             ],
-            "Configuration": [
+            column_names["config"]: [
                 "MB 6.0\nUSAF_BASIC 8.1\nXAFull",
                 "FRANCE KC 6.5.2",
                 "",
@@ -143,9 +144,9 @@ def test_helper_branch_off_map_parent_to_child_pairs():
 
     result = helper_branch_off_map(
         df,
-        parent_col="Branch Off of",
-        child_col1="ID",
-        child_col2="Configuration",
+        parent_col=column_names["branch_off"],
+        child_col1=column_names["doors_id"],
+        child_col2=column_names["config"],
     )
 
     assert "MCLLR149971" in result

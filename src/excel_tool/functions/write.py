@@ -1,9 +1,13 @@
 import pandas as pd
 import openpyxl
-from excel_tool.config.data_config import File_data
+from excel_tool.config.data_config import File_data, column_names
 
 def write_df_to_new_sheet(file: File_data, df, sheet_name):
-    widths = {'ID': 20, 'Object Text': 50, 'Originating ID': 25}
+    widths = {column_names["doors_id"]: 30, 
+              column_names["doors_text"]: 50, 
+              column_names["oid"]: 25,
+              column_names["config"]: 50,
+              column_names["branch_off"]: 30}
 
     with pd.ExcelWriter(
         file.file_path, 
