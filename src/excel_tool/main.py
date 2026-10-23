@@ -7,9 +7,10 @@ def main():
     # Get file paths
     doors_req       = input("Please drop DOORS file here: ")
     block_8_rubric  = input("Please drop Block_8_Rubric file here: ")
-    master          = input("Please drop master file here: ")
+    
 
     # Get helper file paths
+    master          = input("Please drop master file here: ")
     obj_with_OID = input("Please drop ObjectsWithOrigIDNotUSAF81 file here: ")
     branch_off = input("Please drop BranchOffOf file here: ")
 

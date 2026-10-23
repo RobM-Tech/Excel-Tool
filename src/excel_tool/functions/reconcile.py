@@ -8,29 +8,33 @@ def run_reconcile(doors_path, rubric_path, master_path=None, helper_a_path=None,
     # Create file data
     doors_data          = collection.create_file_data(doors_path, "DOORS")
     block_8_rubric_data = collection.create_file_data(rubric_path, "RUBRIC")
+
+    # Make a copy of DOORS to keep original safe when writing 
+    # File data is created as well
+    doors_out = collection.make_copy_of_file(doors_data)
+
+    # Load workbooks into datafields
+    doors_df          = load.load_workbook(doors_data)
+    block_8_rubric_df = load.load_workbook(block_8_rubric_data)
+
+    # Extract multiple-IDs in one cell preserve order
+    doors_exploded_df  = collection.explode_multi_ID_cells(doors_df, column_names["oid"])
+    master_exploded_df = collection.explode_multi_ID_cells(master_df, column_names["oid"])
+
+    # Make Rubric ID column a set for quick comparison
+    block_8_rubric_originating_ids = set(block_8_rubric_df["Block 8.1 Full"])
+
+
     
     # Helpers file data
     master_data         = collection.create_file_data(master_path, "MASTER")
     obj_with_OID_data   = collection.create_file_data(helper_a_path, "NOT_USAF81")
     branch_off_data     = collection.create_file_data(helper_b_path, "BRANCH_OFF")
 
-    # Make a copy of DOORS to keep original safe when writing
-    doors_out = collection.make_copy_of_file(doors_data)
-
-
-    # Load workbooks into datafields
-    doors_df          = load.load_workbook(doors_data)
-    block_8_rubric_df = load.load_workbook(block_8_rubric_data)
-    master_df         = load.load_workbook(master_data)
     # Load helpers into datafields
     obj_with_OID_df   = load.load_workbook(obj_with_OID_data)
     branch_off_df     = load.load_workbook(branch_off_data)
-
-    
-    # Extract multiple-IDs in one cell preserve order
-    doors_exploded_df  = collection.explode_multi_ID_cells(doors_df, column_names["oid"])
-    master_exploded_df = collection.explode_multi_ID_cells(master_df, column_names["oid"])
-
+    master_df         = load.load_workbook(master_data)
 
     # Create helper dicts
     obj_with_OID_dict = collection.helper_obj_dict(obj_with_OID_df, 
@@ -44,13 +48,9 @@ def run_reconcile(doors_path, rubric_path, master_path=None, helper_a_path=None,
                                                        )
 
 
-    # Make Rubric ID column a set for quick comparison
-    block_8_rubric_originating_ids = set(block_8_rubric_df["Block 8.1 Full"])
-
-
     '''
     List one Originating IDs in the rubric but not in DOORS (optionally enriched with MASTER ID
-    Also filterd against two helper files, objectswithnoUSAF and BranchOffof
+    Also filterd against two helper files, objectswithnoUSAF and BranchOffof for matching tag ex. USAF_BASIC 8.1
     '''
     # Pass to list 1 comparison function
     list_one = compare.list_one_rubric_to_DOORS(
@@ -68,16 +68,22 @@ def run_reconcile(doors_path, rubric_path, master_path=None, helper_a_path=None,
                                         on=column_names["oid"], 
                                         how="left"
                                        )
-
+    '''
+    List two Originating IDs in DOORs but not in Rubric
+    '''
     # Pass to list 2 comparison runction
     list_two = compare.list_2_DOORS_to_rubric(
                                             doors_exploded_df,
                                             block_8_rubric_originating_ids)
-    
+    '''
+    List three Originating IDs that have the same object text and it is not n/a.
+    '''
     # Pass to list 3 filter
     list_three = compare.compare_obj_text(doors_df)
 
-
+    '''
+    List four extra list that shows what rows had multiple originating IDs in one cell
+    '''
     # Added Extra flagging
     # Flag rows in DOORS with multiple Originating IDs in one cell
     # Get the index of rows that have multiple IDs
