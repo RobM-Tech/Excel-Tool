@@ -19,13 +19,14 @@ def run_reconcile(doors_path, rubric_path, master_path=None, helper_a_path=None,
 
     # Extract multiple-IDs in one cell preserve order
     doors_exploded_df  = collection.explode_multi_ID_cells(doors_df, column_names["oid"])
-    master_exploded_df = collection.explode_multi_ID_cells(master_df, column_names["oid"])
 
     # Make Rubric ID column a set for quick comparison
     block_8_rubric_originating_ids = set(block_8_rubric_df["Block 8.1 Full"])
 
 
-    
+    '''
+    Helper files, used to create filters to find discrepancies
+    '''
     # Helpers file data
     master_data         = collection.create_file_data(master_path, "MASTER")
     obj_with_OID_data   = collection.create_file_data(helper_a_path, "NOT_USAF81")
@@ -35,6 +36,9 @@ def run_reconcile(doors_path, rubric_path, master_path=None, helper_a_path=None,
     obj_with_OID_df   = load.load_workbook(obj_with_OID_data)
     branch_off_df     = load.load_workbook(branch_off_data)
     master_df         = load.load_workbook(master_data)
+
+    # Extract multi-IDs in OID column of All SDD helper 
+    master_exploded_df = collection.explode_multi_ID_cells(master_df, column_names["oid"])
 
     # Create helper dicts
     obj_with_OID_dict = collection.helper_obj_dict(obj_with_OID_df, 
@@ -96,3 +100,45 @@ def run_reconcile(doors_path, rubric_path, master_path=None, helper_a_path=None,
     write.write_df_to_new_sheet(doors_out, list_two[[column_names["doors_id"], column_names["oid"]]], "List Two")
     write.write_df_to_new_sheet(doors_out, list_three, "List Three")
     write.write_df_to_new_sheet(doors_out, flagged_idx_list, "List Four")
+
+
+def run_mapping(doors_path):
+    # Create file data
+    doors_data        = collection.create_file_data(doors_path, "DOORS")
+
+    # Make a copy of DOORS to keep original safe when writing 
+    # File data is created as well
+    doors_out         = collection.make_copy_of_file(doors_data)
+
+    # Load workbooks into datafields
+    doors_df          = load.load_workbook(doors_data)
+
+    # Extract multiple-IDs in one cell preserve order
+    doors_exploded_df  = collection.explode_multi_ID_cells(doors_df, column_names["oid"])
+
+    # Count oid occurances 
+    doors_exploded_df["is multi entry"] = (
+        doors_exploded_df.groupby(column_names["oid"])[column_names["oid"]]
+        .transform("count") > 1
+        )
+
+    # Generate the data needed for mapping
+    # 1 oid -> one line per door_id
+    # 2 oid -> multi-id in one cell
+    map1 = (
+        doors_exploded_df[
+            [column_names["oid"], 
+             column_names["doors_id"], 
+             "is multi entry"]
+             ]
+             )
+
+    map2 = (
+        doors_exploded_df.groupby(column_names["oid"], 
+                                  as_index=False)[column_names["doors_id"]]
+                                  .agg("\n".join)
+                                  )
+
+    # write to new sheets
+    write.write_df_to_new_sheet(doors_out, map1, "Map 1")
+    write.write_df_to_new_sheet(doors_out, map2, "Map 2")

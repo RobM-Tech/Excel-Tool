@@ -2,7 +2,7 @@ import platform
 import shutil
 
 
-from excel_tool.config import data_config
+
 from pathlib import Path
 from excel_tool.config.data_config import File_data
 
