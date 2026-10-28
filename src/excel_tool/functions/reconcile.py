@@ -1,144 +1,111 @@
+import pandas as pd
+import numpy as np
 from excel_tool.config.data_config import column_names
 from excel_tool.functions import (collection,
                                   load,
-                                  compare,
                                   write)
 
-def run_reconcile(doors_path, rubric_path, master_path=None, helper_a_path=None, helper_b_path=None):
+def set_diff_reconcile(doors_path, rubric_path):
     # Create file data
     doors_data          = collection.create_file_data(doors_path, "DOORS")
-    block_8_rubric_data = collection.create_file_data(rubric_path, "RUBRIC")
+    rubric_data = collection.create_file_data(rubric_path, "RUBRIC")
 
     # Make a copy of DOORS to keep original safe when writing 
     # File data is created as well
     doors_out = collection.make_copy_of_file(doors_data)
 
     # Load workbooks into datafields
-    doors_df          = load.load_workbook(doors_data)
-    block_8_rubric_df = load.load_workbook(block_8_rubric_data)
+    doors_df     = load.load_workbook(doors_data)
+    rubric_df    = load.load_workbook(rubric_data)
 
-    # Extract multiple-IDs in one cell preserve order
-    doors_exploded_df  = collection.explode_multi_ID_cells(doors_df, column_names["oid"])
+    # Make ID column a set for quick comparison
+    rubric_originating_ids = set(rubric_df[column_names["id"]])
+    doors_df_set = set(doors_df[column_names["id"]])
 
-    # Make Rubric ID column a set for quick comparison
-    block_8_rubric_originating_ids = set(block_8_rubric_df["Block 8.1 Full"])
+    # Set comparison
+    list_one = rubric_originating_ids - doors_df_set
+    list_two = doors_df_set - rubric_originating_ids
 
+    # Turn back to Dataframe
+    list_one_df = pd.DataFrame({column_names["id"]: sorted(list_one)})
+    list_two_df = pd.DataFrame({column_names["id"]: sorted(list_two)})
 
-    '''
-    Helper files, used to create filters to find discrepancies
-    '''
-    # Helpers file data
-    master_data         = collection.create_file_data(master_path, "MASTER")
-    obj_with_OID_data   = collection.create_file_data(helper_a_path, "NOT_USAF81")
-    branch_off_data     = collection.create_file_data(helper_b_path, "BRANCH_OFF")
-
-    # Load helpers into datafields
-    obj_with_OID_df   = load.load_workbook(obj_with_OID_data)
-    branch_off_df     = load.load_workbook(branch_off_data)
-    master_df         = load.load_workbook(master_data)
-
-    # Extract multi-IDs in OID column of All SDD helper 
-    master_exploded_df = collection.explode_multi_ID_cells(master_df, column_names["oid"])
-
-    # Create helper dicts
-    obj_with_OID_dict = collection.helper_obj_dict(obj_with_OID_df, 
-                                                   column_names["oid"], 
-                                                   column_names["doors_id"]
-                                                   )
-    branch_off_dict = collection.helper_branch_off_map(branch_off_df, 
-                                                       column_names["branch_off"], 
-                                                       column_names["doors_id"], 
-                                                       column_names["config"]
-                                                       )
+    # Write list one to new sheet -> in rubric not in doors.
+    write.write_df_to_new_sheet(doors_out, list_one_df, "List One")
+    # Write list two to new sheet -> in doors not in rubric.
+    write.write_df_to_new_sheet(doors_out, list_two_df, "List Two")
 
 
-    '''
-    List one Originating IDs in the rubric but not in DOORS (optionally enriched with MASTER ID
-    Also filterd against two helper files, objectswithnoUSAF and BranchOffof for matching tag ex. USAF_BASIC 8.1
-    '''
-    # Pass to list 1 comparison function
-    list_one = compare.list_one_rubric_to_DOORS(
-                                            block_8_rubric_originating_ids, 
-                                            doors_exploded_df[column_names["oid"]].to_list())
-
-    # Run list one against new filter (objwithnoUSAF, BranchOffof)
-    list_one_filtered = compare.filter_list_one(list_one[column_names["oid"]].to_list(),
-                                                obj_with_OID_dict,
-                                                branch_off_dict )
-
-    # pd.merge() dataframes to find all occurances
-    list_one_merged_df = list_one_filtered.merge(
-                                        master_exploded_df[['Originating ID', 'ID']], 
-                                        on=column_names["oid"], 
-                                        how="left"
-                                       )
-    '''
-    List two Originating IDs in DOORs but not in Rubric
-    '''
-    # Pass to list 2 comparison runction
-    list_two = compare.list_2_DOORS_to_rubric(
-                                            doors_exploded_df,
-                                            block_8_rubric_originating_ids)
-    '''
-    List three Originating IDs that have the same object text and it is not n/a.
-    '''
-    # Pass to list 3 filter
-    list_three = compare.compare_obj_text(doors_df)
-
-    '''
-    List four extra list that shows what rows had multiple originating IDs in one cell
-    '''
-    # Added Extra flagging
-    # Flag rows in DOORS with multiple Originating IDs in one cell
-    # Get the index of rows that have multiple IDs
-    flagged_indexs   = doors_exploded_df.index[doors_exploded_df.index.duplicated()].unique()
-    flagged_idx_list = collection.flag_multi_ID_cells(doors_df, flagged_indexs)
-
-
-    # Write lists to DOORS on a new sheet
-    write.write_df_to_new_sheet(doors_out, list_one_merged_df, "List One")
-    write.write_df_to_new_sheet(doors_out, list_two[[column_names["doors_id"], column_names["oid"]]], "List Two")
-    write.write_df_to_new_sheet(doors_out, list_three, "List Three")
-    write.write_df_to_new_sheet(doors_out, flagged_idx_list, "List Four")
-
-
-def run_mapping(doors_path):
+def run_build_rubric(rubric_path, sdd_path):
     # Create file data
-    doors_data        = collection.create_file_data(doors_path, "DOORS")
+    sdd_data        = collection.create_file_data(sdd_path, "MASTER")
+    rubric_data     = collection.create_file_data(rubric_path, "RUBRIC")
 
     # Make a copy of DOORS to keep original safe when writing 
     # File data is created as well
-    doors_out         = collection.make_copy_of_file(doors_data)
+    rubric_out = collection.make_copy_of_file(rubric_data)
 
-    # Load workbooks into datafields
-    doors_df          = load.load_workbook(doors_data)
+    # Load to datafields
+    sdd_df = load.load_workbook(sdd_data)
 
-    # Extract multiple-IDs in one cell preserve order
-    doors_exploded_df  = collection.explode_multi_ID_cells(doors_df, column_names["oid"])
+    rubric_df = load.load_workbook(rubric_data)
 
-    # Count oid occurances 
-    doors_exploded_df["is multi entry"] = (
-        doors_exploded_df.groupby(column_names["oid"])[column_names["oid"]]
-        .transform("count") > 1
-        )
+    # Turn data to sets for quick compare
+    sdd_mask    = sdd_df[column_names["id"]].str.contains(r"^Delete\s*-\s*", case=False, na=False)
+    sdd_del_set = set(
+        sdd_df.loc[sdd_mask, column_names["id"]]
+        .str.extract(r"(?i)^Delete\s*-\s*(.*)")[0]
+        .dropna()
+    )
+    
+    sdd_active_set = set(sdd_df.loc[~sdd_mask, column_names["id"]])
+    rubric_set     = set(rubric_df[column_names["id"]])
 
-    # Generate the data needed for mapping
-    # 1 oid -> one line per door_id
-    # 2 oid -> multi-id in one cell
-    map1 = (
-        doors_exploded_df[
-            [column_names["oid"], 
-             column_names["doors_id"], 
-             "is multi entry"]
-             ]
-             )
+    # Add active IDs to rubric
+    rubric_set_new = rubric_set | sdd_active_set
 
-    map2 = (
-        doors_exploded_df.groupby(column_names["oid"], 
-                                  as_index=False)[column_names["doors_id"]]
-                                  .agg("\n".join)
-                                  )
+    # Turn back to dataframe
+    rubric_df_new  = pd.DataFrame({column_names["id"]: list(rubric_set_new)})
+    sdd_del_df     = pd.DataFrame({column_names["id"]: list(sdd_del_set)})
 
-    # write to new sheets
-    write.write_df_to_new_sheet(doors_out, map1, "Map 1")
-    write.write_df_to_new_sheet(doors_out, map2, "Map 2")
+    # Flag deleted ID's
+    rubric_df_new[column_names["del"]] = (
+        rubric_df_new[column_names["id"]]
+        .isin(sdd_del_df[column_names["id"]])
+        .map({True: "Delete", False: ""})
+    )
+
+    # Marked for delete but not in rubric
+    missing_mask = ~sdd_del_df[column_names["id"]].isin(rubric_df_new[column_names["id"]])
+    missing_df   = pd.DataFrame({
+        column_names["not"]:
+        sdd_del_df.loc[missing_mask, column_names["id"]].reset_index(drop=True)
+        })
+    
+    # Write updated rubric to new sheet with delete tags.
+    write.write_df_to_new_sheet(rubric_out, rubric_df_new, "Rec_Rubric")
+    # Write any IDs from sdd marked for delete that did not appear in rubric to new sheet.
+    write.write_df_to_new_sheet(rubric_out, missing_df, "Not in Rubric")
+
+
+
+# Legacy list 3/4 filters to be reused possibly. Delete if never reused
+'''
+        
+        #List three Originating IDs that have the same object text and it is not n/a.
+        
+        # Pass to list 3 filter
+        list_three = compare.compare_obj_text(doors_df)
+
+        
+        #List four extra list that shows what rows had multiple originating IDs in one cell
+        
+        # Added Extra flagging
+        # Flag rows in DOORS with multiple Originating IDs in one cell
+        # Get the index of rows that have multiple IDs
+        flagged_indexs   = doors_exploded_df.index[doors_exploded_df.index.duplicated()].unique()
+        flagged_idx_list = collection.flag_multi_ID_cells(doors_df, flagged_indexs)
+
+        write.write_df_to_new_sheet(doors_out, list_three, "List Three")
+        write.write_df_to_new_sheet(doors_out, flagged_idx_list, "List Four")
+'''

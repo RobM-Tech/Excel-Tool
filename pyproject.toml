@@ -1,6 +1,6 @@
 [project]
 name = "excel-tool"
-version = "0.1.0"
+version = "0.2.0"
 description = "Reusable tool to reconcile requirements between DOORS exports and rubric spreadsheets, identifying missing items, and duplicate object text."
 readme = "README.md"
 authors = [

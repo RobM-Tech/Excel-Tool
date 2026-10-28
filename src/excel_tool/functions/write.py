@@ -3,11 +3,11 @@ import openpyxl
 from excel_tool.config.data_config import File_data, column_names
 
 def write_df_to_new_sheet(file: File_data, df, sheet_name):
-    widths = {column_names["doors_id"]: 30, 
+    widths = {column_names["id"]: 30, 
               column_names["doors_text"]: 50, 
-              column_names["oid"]: 25,
+              column_names["not"]: 30,
               column_names["config"]: 50,
-              column_names["branch_off"]: 30}
+              column_names["del"]: 30}
 
     with pd.ExcelWriter(
         file.file_path, 

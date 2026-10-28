@@ -2,10 +2,12 @@ from collections import namedtuple
 
 column_names = {
     "oid": "Originating ID",
-    "doors_id":    "ID",
+    "id":    "ID",
     "doors_text":  "Object Text",
-    "branch_off":  "Branch Off of",
-    "config":      "Configuration"
+    "del":         "Delete flag",
+    "not":         "Not in Rubric",
+    "config":      "Configuration",
+    "multi_entry": "is multi entry"
 }
 
 config_tag = "USAF_BASIC 8.1"

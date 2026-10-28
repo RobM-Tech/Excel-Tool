@@ -4,9 +4,8 @@ from pathlib import Path
 from excel_tool.config.data_config import column_names
 from excel_tool.functions.collection import (get_clean_path, 
                                              create_file_data, 
-                                             explode_multi_ID_cells, 
-                                             helper_obj_dict,
-                                             helper_branch_off_map)
+                                             explode_multi_ID_cells
+                                             )
 
 #Test get_clean_path()
 
@@ -62,7 +61,7 @@ def test_create_file_data_DOORS():
     assert result.file_path == raw
     assert result.file_role == "DOORS"
 
-def test_create_file_data_Block_8_Rubric():
+def test_create_file_data_rubric():
     test_file = "USAF_Block_8_1_Rubric.xlsx"
     
     raw = Path(f"c:/Users/Rob/Desktop/excel sheets/{test_file}")
@@ -94,69 +93,3 @@ def test_explode_multi_ID_cells():
 
     assert list(result["raw_text"]) == expected_values
     assert list(result["doc_id"]) == [1, 1, 1, 1, 2, 2, 2, 2, 3, 3]
-
-
-# Test helper_obj_dict
-def test_helper_obj_dict_merges_tagged_oids():
-    df = pd.DataFrame(
-        {
-            column_names["oid"]: [
-                "MCS87158",
-                "MCS87158 (MB 5.4)",
-                "MCS90460 (MB 5.4)",
-            ],
-            column_names["doors_id"]: [
-                "MCLLR109223",
-                "MCLLR138432",
-                "MCLLR128503",
-            ],
-        }
-    )
-
-    result = helper_obj_dict(df, column_names["oid"], column_names["doors_id"])
-
-    assert "MCS87158" in result
-    assert "MCS87158 (MB 5.4)" not in result
-    assert set(result["MCS87158"]) == {"MCLLR109223", "MCLLR138432"}
-    assert result["MCS90460"] == ["MCLLR128503"]
-
-# Test helper_branch_off_map()
-def test_helper_branch_off_map_parent_to_child_pairs():
-    df = pd.DataFrame(
-        {
-            column_names["branch_off"]: [
-                "MCLLR149971",
-                "MCLLR109223",
-                "MCLLR109223 (MB 5.4)",  # tag should normalize into same parent key
-            ],
-            column_names["doors_id"]: [
-                "MCLLR149973",
-                "MCLLR138432",
-                "MCLLR148259",
-            ],
-            column_names["config"]: [
-                "MB 6.0\nUSAF_BASIC 8.1\nXAFull",
-                "FRANCE KC 6.5.2",
-                "",
-            ],
-        }
-    )
-
-    result = helper_branch_off_map(
-        df,
-        parent_col=column_names["branch_off"],
-        child_col1=column_names["doors_id"],
-        child_col2=column_names["config"],
-    )
-
-    assert "MCLLR149971" in result
-    assert ("MCLLR149973", "MB 6.0\nUSAF_BASIC 8.1\nXAFull") in result["MCLLR149971"]
-
-    assert "MCLLR109223" in result
-    child_ids = {pair[0] for pair in result["MCLLR109223"]}
-    assert child_ids == {"MCLLR138432", "MCLLR148259"}
-
-    # Config left as full string— newlines preserved for later splitlines check
-    configs = {pair[1] for pair in result["MCLLR109223"]}
-    assert "FRANCE KC 6.5.2" in configs
-    assert "" in configs

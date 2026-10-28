@@ -5,34 +5,39 @@ from excel_tool.functions import collection, reconcile
 
 def main():
     # Get file paths
-    doors_req            = input("Please drop DOORS file here: ")
-    block_8_rubric       = input("Please drop Block_8_Rubric file here: ")
-
-    # Get helper file paths
-    master               = input("Please drop master file here: ") or None
-    obj_with_OID         = input("Please drop ObjectsWithOrigIDNotUSAF81 file here: ") or None
-    branch_off           = input("Please drop BranchOffOf file here: ") or None
+    doors_req    = input("Please drop DOORS file here: ")
+    rubric       = input("Please drop rubric file here: ")
+    sdd          = input("Please drop sdd file here: ")
 
     # Clean paths
-    doors_req_clean      = collection.get_clean_path(doors_req)
-    if not block_8_rubric:
-        return reconcile.run_mapping(doors_req_clean)
+    # If theres a doors file clean the path
+    if doors_req:
+        doors_req_clean = collection.get_clean_path(doors_req)
+    # If theres a rubric file clean the path
+    if rubric:
+        rubric_clean    = collection.get_clean_path(rubric)
+    # If there is a sdd file clean the path
+    if sdd:
+        sdd_clean       = collection.get_clean_path(sdd)
 
-    block_8_rubric_clean = collection.get_clean_path(block_8_rubric)
+    ''' 
+    If no doors file uploaded build a new rubric.
+    Use sdd file to find MCLLR marked for delete.
+    MCLLR that isnt marked add to rubric MCLLRs
+    In rubric tag MCLLRs from sdd that have the delete tag,
+    in new column.
+    '''
+    if not doors_req:
+        return reconcile.run_build_rubric(rubric_clean, sdd_clean)
 
+    '''
+    If there is no sdd uploaded run main tool.
+    list 1 - in rubric but not in doors.
+    list 2 - in doors but not in rubric
+    '''
+    if not sdd:
+        return reconcile.set_diff_reconcile(doors_req_clean, rubric_clean)
 
-    
-    # Helpers clean paths
-    master_clean         = collection.get_clean_path(master)
-    obj_with_OID_clean   = collection.get_clean_path(obj_with_OID)
-    branch_off_clean     = collection.get_clean_path(branch_off)
-
-    reconcile.run_reconcile(doors_req_clean, 
-                            block_8_rubric_clean, 
-                            master_clean, 
-                            obj_with_OID_clean, 
-                            branch_off_clean
-                            )
 
     
 

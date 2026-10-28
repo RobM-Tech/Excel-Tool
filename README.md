@@ -1,36 +1,47 @@
 # Excel-Tool
 
-Python utility that reconciles requirements between a **DOORS export** and a **rubric** of originating requirement IDs.
+Python utility that supports data reconciliations and rubric builds for requirements baselines.
 
 Built for repeated baseline reconciliations where the workbook layout stays the same.
 
 ## Problem
 
-Requirements imported into DOORS are often split across multiple rows that share an Originating ID. Manually comparing the DOORS export to the original rubric is slow and error-prone across successive configurations.
+Comparing DOORS exports to baseline rubrics or system design documents is slow and error-prone across successive configurations.
 
-## What it does
+## Workflows
+The utility detects the mode based on which files are provided during the CLI prompts.
 
-Given Excel workbooks for a configuration baseline, the tool writes a **copy** of the DOORS workbook (the original is never modified) and adds:
+### 1. Set-diff reconcile (List One / List Two)
 
-| Sheet | Description |
-|-------|-------------|
-| **List One** | Originating IDs in the rubric but not in DOORS (optionally enriched with MASTER IDs; see below) |
-| **List Two** | Originating IDs in DOORS but not in the rubric (with DOORS `ID`) |
-| **List Three** | DOORS rows that share the same Object Text (excluding `n/a`) |
-| **List Four** | DOORS rows where Originating ID contains more than one ID (data-quality flag) |
+Compares MCLLR ID between a DOORS export and a rubric to find gaps.
 
-Multi-value Originating ID cells are split for comparison. Presence means at least one occurrence.
+| Sheet | Meaning |
+|-------|---------|
+| **List One** | In rubric, not in DOORS |
+| **List Two** | In DOORS, not in rubric |
 
-### Optional inputs (current workflow)
+**Execution:**
+```bash
+uv run python -m excel_tool.main
+```
+When prompted: drop DOORS, drop rubric, leave SDD empty (Enter).
 
-Depending on the run, the tool may also accept:
+### 2. Build next rubric from SDD
 
-- **MASTER** (e.g. All SDD requirements) — left-join on Originating ID so List One can include associated MCLLR `ID` values when present
-- **Helper exports** used only for a **List One post-filter** (interim):
-  - Objects with Originating ID not tagged USAF Basic 8.1
-  - Objects with Branch Off Of populated  
+Starts from a Block rubric (e.g. 8.1.1) and an SDD requirements list to build an updated rubric:
+- Rows like `Delete - MCLLRnnnn` tag matching IDs on the rubric with a Delete flag.
+- Rows that are plain MCLLRs are added if they are not already on the rubric.
+- SDD deletes that are not on the starting rubric are output to a separate sheet.
 
-That post-filter walks branch-off relationships and drops List One Originating IDs that are covered by a related object with exact configuration tag `USAF_BASIC 8.1`. This path is modular and may be removed or replaced when a stable master baseline becomes the primary compare source for later batches.
+**Execution:**
+```bash
+uv run python -m excel_tool.main
+```
+When prompted: leave DOORS empty, drop rubric, drop SDD.
+
+**Output sheets:**
+- `Rec_Rubric`
+- `Not in Rubric`
 
 ## Tech stack
 
@@ -44,45 +55,37 @@ That post-filter walks branch-off relationships and drops List One Originating I
 ## Setup
 
 ```bash
-git clone https://github.com/RobM-Tech/Excel-Tool.git
+git clone https://github.com
 cd Excel-Tool
 uv sync
-
-
-## Usage
-
-```bash
-uv run python -m excel_tool.main
 ```
-
-When prompted, drag and drop the DOORS file, then the Rubric file.  
-Output is written next to the DOORS file as `*_reconciled.xlsx`.
 
 ## Project layout
 
 ```text
 src/excel_tool/
-  main.py
-  config/data_config.py
+  main.py                # CLI prompts and mode selection
+  config/data_config.py  # column names, File_data
   functions/
-    collection.py
+    collection.py        # paths, copy, light helpers
     load.py
-    compare.py
     write.py
+    reconcile.py         # set_diff_reconcile, run_build_rubric
+    compare.py           # List 3 helper retained for later use
 tests/
 ```
 
 ## Design notes
 
-- Original DOORS file is never overwritten
-- File roles are explicit (DOORS, RUBRIC, and optional roles as needed)
-- Exploded Originating IDs keep the original row index for multi-ID flagging
-- Core Rubric ↔ DOORS pipeline is reusable for additional file pairs with the same format
-- List One branch coverage filter is isolated so it can be gated or removed without rewriting the core compare
+- Original files are never overwritten; writes use a copy prefixed as `*_reconciled.xlsx`.
+- File roles are explicit (DOORS, RUBRIC, etc.).
+- Join key for current workflows is ID (MCLLR), not Originating ID.
+- Originating-ID mapping, branch-off filters, and related paths were removed from the live tool after product confirmation.
+- List 3 (duplicate Object Text, excluding n/a) is kept in code for a future request; it is not run by default.
 
 ## Status
 
-Block 8.1 reconciliations in progress. Core lists are stable; optional List One coverage filter and MASTER enrichment are under review with the data owner and may change as a master baseline is established for later batches.
+v0.2.0 — set-diff and rubric-build paths in use; OID-centric pipeline retired from the default tool.
 
 ## Data
 

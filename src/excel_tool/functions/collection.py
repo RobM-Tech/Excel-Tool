@@ -1,8 +1,6 @@
 import platform
 import shutil
 
-
-
 from pathlib import Path
 from excel_tool.config.data_config import File_data
 
@@ -23,7 +21,6 @@ def get_clean_path(file_path):
     
     if clean_fp.suffix.lower() != ".xlsx":
         raise ValueError(f"Error: File type not supported, expected .xlsx but got {clean_fp.suffix}")
-    
     
     print(f"{clean_fp.name} uploaded")
 
@@ -69,60 +66,6 @@ def flag_multi_ID_cells(df, flagged_list):
 
     return df_copy.loc[flagged_list]
 
-
-def helper_obj_dict(df, key_col, value_col):
-    remove_parentheses_pattern = r'\s*\([^)]+\)'
-    extract_pattern = r'[\w-]+'
-    
-    df_copy = df.copy()
-
-    # Strip trailing white space
-    df_copy[value_col] = df_copy[value_col].str.rstrip()
-    # Clean up and isolate individual keys
-    df_copy[key_col] = df_copy[key_col].str.replace(remove_parentheses_pattern, '', regex=True)
-    df_copy[key_col] = df_copy[key_col].str.findall(extract_pattern)
-    # Drop key column with no value
-    df_copy = df_copy.dropna(subset=[key_col])
-
-    # Reshape so every key maps directly to its ID row
-    df_copy = df_copy.explode(key_col)
-    df_copy[key_col] = df_copy[key_col].str.strip()
-
-    # Drop empties in value col
-    df_copy = df_copy.dropna(subset=[value_col])
-
-    # Create dict key = OID, Value = MCLLRs
-    result_dict = (
-        df_copy.groupby(key_col)[value_col]
-        .apply(lambda x: list(set(x)))
-        .to_dict()
-    )
-    
-    return result_dict
-
-def helper_branch_off_map(df, parent_col, child_col1, child_col2):
-    remove_parentheses_pattern = r'\s*\([^)]+\)'
-    extract_pattern = r'[\w-]+'
-    df_copy = df.copy()
-
-    # Normalize parent key
-    df_copy = df_copy.dropna(subset=(parent_col))
-    df_copy[parent_col] = df_copy[parent_col].str.replace(remove_parentheses_pattern, '', regex=True)
-    df_copy[parent_col] = df_copy[parent_col].str.findall(extract_pattern)
-    df_copy = df_copy.explode(parent_col)
-    df_copy[parent_col] = df_copy[parent_col].str.strip()
-    df_copy = df_copy.dropna(subset=[parent_col])
-
-    # Fill empty/NaN cell in config with empty string
-    df_copy[child_col2] = df_copy[child_col2].fillna("")
-
-    result = (
-        df_copy.groupby(parent_col)
-        .apply(lambda row: list(zip(row[child_col1], row[child_col2])), include_groups=False)
-        .to_dict()
-    )
-
-    return result
 
 
     
